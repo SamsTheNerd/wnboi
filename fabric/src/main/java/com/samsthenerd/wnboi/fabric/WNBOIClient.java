@@ -1,4 +1,4 @@
-package com.samsthenerd.wnboi;
+package com.samsthenerd.wnboi.fabric;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;

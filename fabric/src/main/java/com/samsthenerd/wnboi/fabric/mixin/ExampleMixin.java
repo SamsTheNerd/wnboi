@@ -1,4 +1,4 @@
-package com.samsthenerd.wnboi.mixin;
+package com.samsthenerd.wnboi.fabric.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 

@@ -14,12 +14,12 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/wnboi/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.samsthenerd.wnboi.WNBOI"
+      "com.samsthenerd.wnboi.fabric.WNBOIFabric"
     ]
   },
   "depends": {
