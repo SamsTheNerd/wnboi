@@ -19,7 +19,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.wnboi.WNBOI"
+      "com.samsthenerd.wnboi.WNBOI"
     ]
   },
   "depends": {
