@@ -21,6 +21,13 @@ subprojects {
         // The following line declares the yarn mappings you may select this one as well.
         mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 
+
+        // Required for mixin annotation processor
+        annotationProcessor "org.ow2.asm:asm:${project.asm_version}"
+        annotationProcessor "org.ow2.asm:asm-analysis:${project.asm_version}"
+        annotationProcessor "org.ow2.asm:asm-commons:${project.asm_version}"
+        annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
+        annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
     }
 }
 
