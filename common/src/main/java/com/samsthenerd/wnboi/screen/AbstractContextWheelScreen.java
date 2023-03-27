@@ -12,6 +12,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 
 /*
@@ -37,6 +38,11 @@ public class AbstractContextWheelScreen extends Screen{
     protected double lowerBoundRadius = 0;
     protected double upperBoundRadius = 0;
 
+    double currentTime = 0; // updated on each render call
+    double lastStateChange = 0; // set when selected or deselected
+    int tooltipTickDelay = 30; // how many ticks to wait before showing the tooltip
+
+
 
 
     protected List<SpokeRenderer> spokeRenderers; // list so that we can reference them. 
@@ -59,6 +65,17 @@ public class AbstractContextWheelScreen extends Screen{
     protected void init(){
         // WNBOI.LOGGER.info("made a new wheel screen with " + this.numSections + " sections called \"" + title.toString() + "\" | [width="+this.width+", height="+this.height+"]");
         addAllSections();
+    }
+
+    protected void initConsts(){
+        this.centerX = this.width / 2.0;
+        this.centerY = this.height / 2.0;
+
+        this.outerRadius = this.height / 4.0;
+        upperBoundRadius = outerRadius*1.1;
+        lowerBoundRadius = outerRadius*0.1 > innerRadius ? outerRadius*0.1 : innerRadius;
+
+        angleOffset = Math.PI * 0.5 + Math.PI / this.numSections; // so that the first spoke is centered at the top
     }
 
     @Override
@@ -107,30 +124,39 @@ public class AbstractContextWheelScreen extends Screen{
         MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("triggered spoke " + index));
     }
 
-    protected void initConsts(){
-        this.centerX = this.width / 2.0;
-        this.centerY = this.height / 2.0;
-
-        this.outerRadius = this.height / 4.0;
-        upperBoundRadius = outerRadius*1.1;
-        lowerBoundRadius = outerRadius*0.1 > innerRadius ? outerRadius*0.1 : innerRadius;
-    }
-
     protected void addAllSections(){
         initConsts();
         spokeRenderers = new ArrayList<SpokeRenderer>(); // just to clear it
         for(int i = 0; i < this.numSections; i++){
             spokeRenderers.add(genSpokeRenderer(centerX, centerY, outerRadius, this.numSections, i));
+            if(i == 0){
+                spokeRenderers.get(0).labelItemStack = Items.DIAMOND.getDefaultStack();
+            } else {
+                spokeRenderers.get(i).labelItemStack = Items.DIRT.getDefaultStack();
+            }
         }
     }
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        currentTime = MinecraftClient.getInstance().world.getTime() + delta;
         updateSelectedSection(mouseX, mouseY);
         super.render(matrices, mouseX, mouseY, delta);
         for(SpokeRenderer sr : spokeRenderers){
             sr.render(matrices, mouseX, mouseY, delta);
         }
+        tryRenderTooltip(matrices, mouseX, mouseY);
+    }
+
+    public void tryRenderTooltip(MatrixStack matrices, int mouseX, int mouseY){
+        if(selectedSection != -1 && (currentTime - lastStateChange) >= tooltipTickDelay){
+            doRenderTooltip(matrices, mouseX, mouseY);
+        }
+    }
+
+    // override this to change the tooltip
+    protected void doRenderTooltip(MatrixStack matrices, int mouseX, int mouseY){
+        this.renderTooltip(matrices, Text.of("tooltip for section " + selectedSection), mouseX, mouseY);
     }
 
     public boolean shouldPause() {
@@ -158,6 +184,7 @@ public class AbstractContextWheelScreen extends Screen{
         if(selectedSection != -1){
             spokeRenderers.get(selectedSection).select();
         }
+        lastStateChange = currentTime;
     }
 
     protected int getSectionIndexFromMouse(int mouseX, int mouseY){

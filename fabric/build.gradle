@@ -13,6 +13,7 @@ architectury {
 }
 
 loom {
+    // mixin.defaultRefmapName = "hexcasting.mixins.refmap.json"
     accessWidenerPath = project(":common").loom.accessWidenerPath
 }
 

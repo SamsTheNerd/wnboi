@@ -22,6 +22,9 @@
       "com.samsthenerd.wnboi.fabric.WNBOIFabric"
     ]
   },
+  "mixins": [
+    "wnboi.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.14.14",
     "fabric-api": "*",

@@ -9,6 +9,7 @@ import com.samsthenerd.wnboi.utils.RenderUtils;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.GameRenderer;
@@ -16,6 +17,7 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.ColorHelper.Argb;
 import net.minecraft.util.math.Vec3d;
 
@@ -39,7 +41,7 @@ public class SpokeRenderer implements Drawable{
     protected int sections; // number of sections, so we know arc radius
     protected int sectionIndex; // so we know which one we're actually trying to render
     
-    protected int numDivisions = 5; // how many triangles to use to render the arc
+    protected int numDivisions = 2; // how many triangles to use to render the arc
     
     double pullOutDistance = 0; // if you want to expand it like a pie chart kinda
 
@@ -52,6 +54,18 @@ public class SpokeRenderer implements Drawable{
     protected double offsetY;
 
     protected boolean isSelected;
+
+    public int curveOptions = 1; // controls some options about how the curves are rendered see RenderUtils#buildCurveOptions()
+
+    double currentTime = 0; // updated on each render call
+
+    double lastStateChange = 0; // set when selected or deselected
+    double percentThroughAtLastChange = 1; // 0-1 used while animating to smooth out interrupted transitions. 1 is fully selected, 0 is fully deselected
+    
+    double selectTransitionDuration = 10; // how many ticks to take to transition to selected state (for the animation)
+    double deselectTransitionDuration = 10; // how many ticks to take to transition to deselected state (for the animation)
+
+    public ItemStack labelItemStack = ItemStack.EMPTY;
 
 
 
@@ -97,20 +111,44 @@ public class SpokeRenderer implements Drawable{
 
     public void select(){
         isSelected = true;
+        updateTimeStates();
         innerOutlineWeight = 0.75;
-        pullOutDistance = 10;
+        pullOutDistance = 0;
         innerRadius = outerRadius* 0.2;
+
+        curveOptions = RenderUtils.setInvertOuter(curveOptions, true);
 
         initConsts();
     }
 
     public void unselect(){
         isSelected = false;
+        updateTimeStates();
         innerOutlineWeight = 0;
         pullOutDistance = 0;
         innerRadius = 0;
 
+        curveOptions = RenderUtils.setInvertOuter(curveOptions, false);
+
         initConsts();
+    }
+
+    private void updateTimeStates(){
+        // relying on currentTime being up to date. should be since render gets called so often
+        if(isSelected){ // now selecting, see how far deselecting got
+            if(deselectTransitionDuration <= 0){
+                percentThroughAtLastChange = 0;
+            } else {
+                percentThroughAtLastChange = Math.max(-(currentTime-lastStateChange) / deselectTransitionDuration + percentThroughAtLastChange, 0);
+            }
+        } else { // now deselecting, see how far selecting got
+            if(selectTransitionDuration <= 0){
+                percentThroughAtLastChange = 1;
+            } else {
+                percentThroughAtLastChange = Math.min((currentTime-lastStateChange) / selectTransitionDuration + percentThroughAtLastChange, 1);
+            }
+        }
+        lastStateChange = currentTime;
     }
 
     public List<Vec3d> getOuterCurvePoints(){
@@ -119,7 +157,12 @@ public class SpokeRenderer implements Drawable{
             curvePointsRaw = new ArrayList<Vec3d>();
             curvePointsRaw.add(new Vec3d(0,0,0)); 
         } else {
-            curvePointsRaw = RenderUtils.calcArcPoints(numDivisions, outerRadius-gapHypot, startAngle, endAngle);
+            int curveType = RenderUtils.getOuterCurve(curveOptions);
+            if(curveType == 1){ // polygon
+                curvePointsRaw = RenderUtils.calcPolyPoints(numDivisions, outerRadius-gapHypot, startAngle, endAngle, RenderUtils.getInvertOuter(curveOptions));
+            } else { // arc / default
+                curvePointsRaw = RenderUtils.calcArcPoints(numDivisions, outerRadius-gapHypot, startAngle, endAngle, RenderUtils.getInvertOuter(curveOptions));
+            }
         }
         ArrayList<Vec3d> curvePoints = new ArrayList<Vec3d>();
         for(Vec3d point : curvePointsRaw){
@@ -134,7 +177,12 @@ public class SpokeRenderer implements Drawable{
             curvePointsRaw = new ArrayList<Vec3d>();
             curvePointsRaw.add(new Vec3d(0,0,0)); 
         } else {
-            curvePointsRaw = RenderUtils.calcArcPoints(numDivisions, innerRadius-gapHypot, startAngle, endAngle);
+            int curveType = RenderUtils.getInnerCurve(curveOptions);
+            if(curveType == 1){ // polygon
+                curvePointsRaw = RenderUtils.calcPolyPoints(numDivisions, innerRadius-gapHypot, startAngle, endAngle, RenderUtils.getInvertInner(curveOptions));
+            } else { // arc / default
+                curvePointsRaw = RenderUtils.calcArcPoints(numDivisions, innerRadius-gapHypot, startAngle, endAngle, RenderUtils.getInvertInner(curveOptions));
+            }
         }
         ArrayList<Vec3d> curvePoints = new ArrayList<Vec3d>();
         for(Vec3d point : curvePointsRaw){
@@ -143,7 +191,6 @@ public class SpokeRenderer implements Drawable{
         return curvePoints;
     }
 
-    
     public void drawFill(MatrixStack matrices, int mouseX, int mouseY, float delta){
         List<Vec3d> outerCurvePoints = getOuterCurvePoints();
         List<Vec3d> innerCurvePoints = getInnerCurvePoints();
@@ -212,10 +259,29 @@ public class SpokeRenderer implements Drawable{
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta){
         // WNBOI.LOGGER.info("rendering spoke " + sectionIndex);
+
+        currentTime = MinecraftClient.getInstance().world.getTime() + delta;
+
+
         drawFill(matrices, mouseX, mouseY, delta);
 
         drawOutline(matrices, mouseX, mouseY, delta);
+        renderLabel(matrices, mouseX, mouseY, delta);
         return;
+    }
+
+    // general call to render the label
+    public void renderLabel(MatrixStack matrices, int mouseX, int mouseY, float delta){
+        renderItemLabel(matrices, mouseX, mouseY, delta);
+    }
+
+    protected void renderItemLabel(MatrixStack matrices, int mouseX, int mouseY, float delta){
+        if(labelItemStack == null){
+            return;
+        }
+        int transpARGB = Argb.getArgb(128, 255, 255, 255);
+        RenderUtils.renderItemIcon(matrices, labelItemStack, 
+            (int)(-8+originX+offsetX+Math.cos(midAngle)*outerRadius/2), (int)(-8+originY+offsetY+Math.sin(midAngle)*outerRadius/2), transpARGB);
     }
 
     // gets the color for a specific vertex. returns argb value
