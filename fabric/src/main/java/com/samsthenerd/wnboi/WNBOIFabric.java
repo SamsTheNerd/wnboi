@@ -1,9 +1,7 @@
-package com.samsthenerd.wnboi.fabric;
+package com.samsthenerd.wnboi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.samsthenerd.wnboi.WNBOI;
 
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;

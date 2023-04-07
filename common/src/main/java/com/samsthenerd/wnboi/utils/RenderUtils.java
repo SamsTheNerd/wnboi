@@ -14,13 +14,20 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.SimpleFramebuffer;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.DiffuseLighting;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.ColorHelper.Argb;
+import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 
 /*
  * just some functions for rendering math.
@@ -178,7 +185,7 @@ public class RenderUtils {
         }
     }
 
-    // renders the item icon with more options available
+    // renders the item icon with more options available, might be bad for performance? use with caution for sure
     public static void renderItemIcon(MatrixStack matrices, ItemStack stack, int x, int y, int argb){
         setupTransparencyFrameBuffer();
         MinecraftClient.getInstance().getItemRenderer().renderGuiItemIcon(stack, x, y);
@@ -216,6 +223,37 @@ public class RenderUtils {
         RenderSystem.setShaderColor(1,1,1,1);
     }
 
+    // copied from InventoryScreen - expanded to be not just LivingEntity and removed the look at mouse thing
+    public static void drawEntity(int x, int y, int size, Entity entity) {
+        MatrixStack matrixStack = RenderSystem.getModelViewStack();
+        matrixStack.push();
+        matrixStack.translate(x, y, 1050.0);
+        matrixStack.scale(1.0f, 1.0f, -1.0f);
+        RenderSystem.applyModelViewMatrix();
+        MatrixStack matrixStack2 = new MatrixStack();
+        matrixStack2.translate(0.0, 0.0, 1000.0);
+        matrixStack2.scale(size, size, size);
+        Quaternion quaternion = Vec3f.POSITIVE_Z.getDegreesQuaternion(180.0f);
+        // Quaternion quaternion2 = Vec3f.POSITIVE_X.getDegreesQuaternion(g * 20.0f);
+        // quaternion.hamiltonProduct(quaternion2);
+        matrixStack2.multiply(quaternion);
+        DiffuseLighting.method_34742();
+        EntityRenderDispatcher entityRenderDispatcher = MinecraftClient.getInstance().getEntityRenderDispatcher();
+        quaternion.conjugate();
+        entityRenderDispatcher.setRotation(quaternion);
+        entityRenderDispatcher.setRenderShadows(false);
+        VertexConsumerProvider.Immediate immediate = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
+        entityRenderDispatcher.render(entity, 0.0, 0.0, 0.0, 0.0f, 1.0f, matrixStack2, immediate, 0xF000F0);
+        immediate.draw();
+        entityRenderDispatcher.setRenderShadows(true);
+        matrixStack.pop();
+        RenderSystem.applyModelViewMatrix();
+        DiffuseLighting.enableGuiDepthLighting();
+    }
+
+    public static void renderText(MatrixStack matrices, Text text, int x, int y, int color){
+        MinecraftClient.getInstance().textRenderer.draw(matrices, text, x, y, color);
+    }
 
 
     // different types of built-in curves. can support up to 16 different types.

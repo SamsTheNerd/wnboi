@@ -1,6 +1,4 @@
-package com.samsthenerd.wnboi.forge;
-
-import com.samsthenerd.wnboi.WNBOI;
+package com.samsthenerd.wnboi;
 
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.common.Mod;

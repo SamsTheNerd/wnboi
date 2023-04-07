@@ -16,8 +16,11 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.ColorHelper.Argb;
 import net.minecraft.util.math.Vec3d;
 
@@ -29,7 +32,7 @@ import net.minecraft.util.math.Vec3d;
 public class SpokeRenderer implements Drawable{
     protected double outerRadius; // radius of the wheel
     protected double innerRadius = 0; // distance from center to the inner edge of the spoke
-    protected double gap=10; // distance between adjacent spokes before adding outline
+    protected double gap=10; // distance between adjacent spokes before adding outline. fine to edit for changing on select but otherwise should probably change with the ContextWheelScreen
     protected double angleOffset = Math.PI * 0.5; // should edit this from 
 
     protected double outerOutlineWeight = 0; // how thick the outline should be
@@ -41,9 +44,9 @@ public class SpokeRenderer implements Drawable{
     protected int sections; // number of sections, so we know arc radius
     protected int sectionIndex; // so we know which one we're actually trying to render
     
-    protected int numDivisions = 2; // how many triangles to use to render the arc
+    protected int numDivisions = 4; // how many triangles to use to render the arc
     
-    double pullOutDistance = 0; // if you want to expand it like a pie chart kinda
+    public double pullOutDistance = 0; // if you want to expand it like a pie chart kinda
 
     // these just get calculated once and then stored
     protected double startAngle;
@@ -55,17 +58,21 @@ public class SpokeRenderer implements Drawable{
 
     protected boolean isSelected;
 
-    public int curveOptions = 1; // controls some options about how the curves are rendered see RenderUtils#buildCurveOptions()
+    public int curveOptions = RenderUtils.buildCurveOptions(0, 0, false, false); // controls some options about how the curves are rendered see RenderUtils#buildCurveOptions()
 
-    double currentTime = 0; // updated on each render call
+    protected double currentTime = 0; // updated on each render call
 
-    double lastStateChange = 0; // set when selected or deselected
-    double percentThroughAtLastChange = 1; // 0-1 used while animating to smooth out interrupted transitions. 1 is fully selected, 0 is fully deselected
+    protected double lastStateChange = 0; // set when selected or deselected
+    protected double percentThroughAtLastChange = 1; // 0-1 used while animating to smooth out interrupted transitions. 1 is fully selected, 0 is fully deselected
     
-    double selectTransitionDuration = 10; // how many ticks to take to transition to selected state (for the animation)
-    double deselectTransitionDuration = 10; // how many ticks to take to transition to deselected state (for the animation)
+    protected double selectTransitionDuration = 10; // how many ticks to take to transition to selected state (for the animation)
+    protected double deselectTransitionDuration = 10; // how many ticks to take to transition to deselected state (for the animation)
 
     public ItemStack labelItemStack = ItemStack.EMPTY;
+    public Entity labelEntity = null; 
+    public int labelEntitySize = 16; // how big to render the entity - probably pixels
+    public Text labelText = null;
+    public Integer labelDist = null; // if null it will default to half the outer radius
 
 
 
@@ -112,11 +119,9 @@ public class SpokeRenderer implements Drawable{
     public void select(){
         isSelected = true;
         updateTimeStates();
-        innerOutlineWeight = 0.75;
-        pullOutDistance = 0;
-        innerRadius = outerRadius* 0.2;
+        innerOutlineWeight = 0.5;
+        pullOutDistance = 10;
 
-        curveOptions = RenderUtils.setInvertOuter(curveOptions, true);
 
         initConsts();
     }
@@ -126,9 +131,6 @@ public class SpokeRenderer implements Drawable{
         updateTimeStates();
         innerOutlineWeight = 0;
         pullOutDistance = 0;
-        innerRadius = 0;
-
-        curveOptions = RenderUtils.setInvertOuter(curveOptions, false);
 
         initConsts();
     }
@@ -270,34 +272,65 @@ public class SpokeRenderer implements Drawable{
         return;
     }
 
-    // general call to render the label
+    // general call to render the label - override to call whichever you'd like
     public void renderLabel(MatrixStack matrices, int mouseX, int mouseY, float delta){
-        renderItemLabel(matrices, mouseX, mouseY, delta);
+        // renderItemLabel(matrices, mouseX, mouseY, delta);
+        // renderEntityLabel(matrices, mouseX, mouseY, delta);
+        // renderTextLabel(matrices, mouseX, mouseY, delta);
     }
+
+    // some basic label renderers. feel free to override and do your own thing.
+    // you may need to make new render functions like I have in RenderUtils to suit your needs
 
     protected void renderItemLabel(MatrixStack matrices, int mouseX, int mouseY, float delta){
         if(labelItemStack == null){
             return;
         }
-        int transpARGB = Argb.getArgb(128, 255, 255, 255);
-        RenderUtils.renderItemIcon(matrices, labelItemStack, 
-            (int)(-8+originX+offsetX+Math.cos(midAngle)*outerRadius/2), (int)(-8+originY+offsetY+Math.sin(midAngle)*outerRadius/2), transpARGB);
+        // int transpARGB = Argb.getArgb(128, 255, 255, 255);
+        ItemRenderer itemRenderer = MinecraftClient.getInstance().getItemRenderer();
+        int labelDistToUse = (labelDist == null) ? (int)(outerRadius / 2) : labelDist;
+        // RenderUtils.renderItemIcon(matrices, labelItemStack, 
+        itemRenderer.renderGuiItemIcon(labelItemStack, 
+            (int)(-8+originX+offsetX+Math.cos(midAngle)*labelDistToUse), (int)(-8+originY+offsetY+Math.sin(midAngle)*labelDistToUse));
+    }
+
+    public void renderEntityLabel(MatrixStack matrices, int mouseX, int mouseY, float delta){
+        if(labelEntity == null){
+            return;
+        }
+        float largerDim = (Math.max(labelEntity.getWidth(), labelEntity.getHeight()));
+        int sizeToUse = (int)(labelEntitySize / largerDim);  
+        int labelDistToUse = (labelDist == null) ? (int)(outerRadius / 2) : labelDist;
+        // RenderUtils.drawEntity((int)(-(sizeToUse/2)+originX+offsetX+Math.cos(midAngle)*outerRadius/2), (int)(-(sizeToUse/2)+originY+offsetY+Math.sin(midAngle)*outerRadius/2), sizeToUse, labelEntity);
+        RenderUtils.drawEntity((int)(originX+offsetX+Math.cos(midAngle)*labelDistToUse), (int)(originY+offsetY+Math.sin(midAngle)*labelDistToUse), sizeToUse, labelEntity);
+    }
+
+    public void renderTextLabel(MatrixStack matrices, int mouseX, int mouseY, float delta){
+        if(labelText == null){
+            return;
+        }
+        int labelDistToUse = (labelDist == null) ? (int)(outerRadius / 2) : labelDist;
+        int width = MinecraftClient.getInstance().textRenderer.getWidth(labelText);
+        RenderUtils.renderText(matrices, labelText, (int)(-(width/2)+originX+offsetX+Math.cos(midAngle)*labelDistToUse), (int)(-(width/2)+originY+offsetY+Math.sin(midAngle)*labelDistToUse), 0xFFFFFFFF);
     }
 
     // gets the color for a specific vertex. returns argb value
     public int getColorFill(int vI, int numOuter, int numInner, boolean isInner){
-        if(isInner || !isSelected){
-            return Argb.getArgb(96, 153, 102, 204);
-        } else {
-            return Argb.getArgb(150, 38, 97, 156);
-        }
+        return Argb.getArgb(150, 150, 150, 150); // solid gray
+        // sample for how to have a gradient when selected:
+        // if(isInner || !isSelected){
+        //     return Argb.getArgb(96, 153, 102, 204);
+        // } else {
+        //     return Argb.getArgb(150, 38, 97, 156);
+        // }
     }
 
     // gets the color for a specific point on the outline. returns argb value
     public int getColorOutline(int vI){
         return Argb.getArgb(128, 255,255,255);
-        // need to add functions to determine where on outline it is once i rework that to have more built in options
+        // need to add functions to determine where on outline it is - come back to this at some point
     }
+
 
 
 

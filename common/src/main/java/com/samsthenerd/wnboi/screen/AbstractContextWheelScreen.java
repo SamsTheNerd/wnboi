@@ -11,7 +11,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 
@@ -41,6 +44,10 @@ public class AbstractContextWheelScreen extends Screen{
     double currentTime = 0; // updated on each render call
     double lastStateChange = 0; // set when selected or deselected
     int tooltipTickDelay = 30; // how many ticks to wait before showing the tooltip
+
+    // use these to have the screen close when the key is released
+    public KeyBinding keyBinding = null;
+    public boolean requireKeydown = false;
 
 
 
@@ -86,16 +93,30 @@ public class AbstractContextWheelScreen extends Screen{
         super.removed();
     }
 
+    public boolean closeWheel(){
+        WNBOI.LOGGER.info("closing wheel with closeWheel()");
+        if(selectedSection != -1){
+            triggerSpoke(selectedSection);
+            if(this != null){
+                this.close();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // something thinks that this screen shouldn't be open, but it could be wrong so override this if it needs to ignore that close request.
+    // e.g. if this wheel is handled by something other than a KeyboundItem it should override this to return false with reason == 0
+    // reason:
+    //   0: there is no KeyboundItem in the player's hands
+    public void askToClose(int reason){
+        this.closeWheel();
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if(button == 0){
-            if(selectedSection != -1){
-                triggerSpoke(selectedSection);
-                if(this != null){
-                    this.close();
-                }
-                return true;
-            }
+            return closeWheel();
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -131,9 +152,14 @@ public class AbstractContextWheelScreen extends Screen{
             spokeRenderers.add(genSpokeRenderer(centerX, centerY, outerRadius, this.numSections, i));
             if(i == 0){
                 spokeRenderers.get(0).labelItemStack = Items.DIAMOND.getDefaultStack();
+                spokeRenderers.get(0).labelEntity = MinecraftClient.getInstance().player;
             } else {
                 spokeRenderers.get(i).labelItemStack = Items.DIRT.getDefaultStack();
+                ItemEntity ie = EntityType.ITEM.create(MinecraftClient.getInstance().world);
+                ie.setStack(Items.DIRT.getDefaultStack());
+                spokeRenderers.get(i).labelEntity = ie;
             }
+            spokeRenderers.get(i).labelText = Text.of(Integer.toString(i));
         }
     }
 

@@ -19,7 +19,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.samsthenerd.wnboi.fabric.WNBOIFabric"
+      "com.samsthenerd.wnboi.WNBOIFabric"
+    ],
+    "client": [
+      "com.samsthenerd.wnboi.WNBOIClient"
     ]
   },
   "mixins": [
