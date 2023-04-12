@@ -1,10 +1,9 @@
 package com.samsthenerd.wnboi.utils;
 
+
 import org.lwjgl.glfw.GLFW;
 
-import com.samsthenerd.wnboi.WNBOI;
 import com.samsthenerd.wnboi.interfaces.KeyboundItem;
-import com.samsthenerd.wnboi.screen.AbstractContextWheelScreen;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.MinecraftClient;
@@ -34,30 +33,7 @@ public class KeybindUtils {
             offItem = (KeyboundItem)offHand.getItem();
         }
 
-        // first check if the current open screen is either of these
-        if(client.currentScreen instanceof AbstractContextWheelScreen){ 
-            // some context wheel is open - check if we should close it
-            if(mainItem != null && mainItem.screenIsOpen() && mainItem.getKeyBinding() == keyBinding){
-                if(!keyBinding.wasPressed()){
-                    WNBOI.LOGGER.info("closing main item screen with keybind: " + keyBinding.getTranslationKey());
-                    mainItem.closeScreen();
-                    return;
-                }
-            }
-            if(offItem != null && offItem.screenIsOpen() && offItem.getKeyBinding() == keyBinding){
-                if(!keyBinding.wasPressed()){
-                    WNBOI.LOGGER.info("closing off item screen with keybind: " + keyBinding.getTranslationKey());
-                    offItem.closeScreen();
-                    return;
-                }
-            }
-            // neither item is a keybound item, if we have a wheel context screen open we should remind it to close if it needs to
-            if(offItem == null && mainItem == null){
-                ((AbstractContextWheelScreen)client.currentScreen).askToClose(0);
-                return;
-            }
-
-        } else if(client.currentScreen != null){
+        if(client.currentScreen != null){
             // there's some other screen open, probably shouldn't open ours
             return;
         } else {

@@ -29,9 +29,4 @@ public interface KeyboundItem{
     public default void openScreen(){
         MinecraftClient.getInstance().setScreen(getScreen());
     }
-
-    @Environment(EnvType.CLIENT)
-    public default void closeScreen(){
-        getScreen().closeWheel();
-    }
 }

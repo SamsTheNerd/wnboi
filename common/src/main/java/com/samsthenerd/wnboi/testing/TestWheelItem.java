@@ -17,6 +17,8 @@ public class TestWheelItem extends Item implements KeyboundItem{
     public TestWheelItem(Settings settings) {
         super(settings);
         screen = new TestWheelScreen();
+        screen.keyBinding = this.getKeyBinding();
+        screen.requireKeydown = true;
     }
 
     public AbstractContextWheelScreen getScreen(){

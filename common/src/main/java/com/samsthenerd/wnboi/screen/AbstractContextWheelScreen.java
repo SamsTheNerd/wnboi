@@ -93,13 +93,19 @@ public class AbstractContextWheelScreen extends Screen{
         super.removed();
     }
 
-    public boolean closeWheel(){
+    public boolean closeWheel(boolean requireSelection){
         WNBOI.LOGGER.info("closing wheel with closeWheel()");
         if(selectedSection != -1){
             triggerSpoke(selectedSection);
             if(this != null){
+                WNBOI.LOGGER.info("actually closing");
                 this.close();
             }
+            return true;
+        }
+        if(!requireSelection && this != null){
+            WNBOI.LOGGER.info("actually closing");
+            this.close();
             return true;
         }
         return false;
@@ -110,13 +116,13 @@ public class AbstractContextWheelScreen extends Screen{
     // reason:
     //   0: there is no KeyboundItem in the player's hands
     public void askToClose(int reason){
-        this.closeWheel();
+        this.closeWheel(true);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if(button == 0){
-            return closeWheel();
+            return closeWheel(true);
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -133,10 +139,21 @@ public class AbstractContextWheelScreen extends Screen{
                     this.close();
                 }
                 return true;
-            }
+            } 
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
+
+    @Override
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        if(keyBinding != null && keyBinding.matchesKey(keyCode, scanCode) && requireKeydown){
+            WNBOI.LOGGER.info("closing wheel with keyReleased()");
+            this.closeWheel(false);
+            return true;
+        }
+        return super.keyReleased(keyCode, scanCode, modifiers);
+    }
+
 
     // do whatever logic you want it to do
     public void triggerSpoke(int index){
