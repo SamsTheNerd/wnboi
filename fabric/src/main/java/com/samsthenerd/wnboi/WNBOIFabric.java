@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public class WNBOIFabric implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -20,7 +18,7 @@ public class WNBOIFabric implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
-		Registry.register(Registry.ITEM, new Identifier("wnboi", "test_wheel_item"), WNBOI.TEST_WHEEL_ITEM);
+		// Registry.register(Registry.ITEM, new Identifier("wnboi", "test_wheel_item"), WNBOI.TEST_WHEEL_ITEM);
 
 		LOGGER.info("Hello Fabric world!");
 	}

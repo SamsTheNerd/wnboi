@@ -3,10 +3,10 @@
   "id": "wnboi",
   "version": "${version}",
 
-  "name": "WNBOI",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Why Not Be One Item",
+  "description": "A library mod for context menus",
   "authors": [
-    "SamsTheNerd"
+    "samsthenerd"
   ],
   "contact": {
     "homepage": "https://github.com/SamsTheNerd/wnboi",
@@ -14,7 +14,7 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/wnboi/icon.png",
+  "icon": "IconWNBOI.png",
 
   "environment": "*",
   "entrypoints": {

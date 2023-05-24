@@ -1,35 +1,29 @@
 modLoader = "javafml"
 loaderVersion = "[43,)"
-#issueTrackerURL = ""
-license = "Insert License Here"
+license = "LGPL-3.0-only"
+issueTrackerURL = "https://github.com/SamsTheNerd/ducky-periphs/issues"
+showAsResourcePack = false
 
 [[mods]]
 modId = "wnboi"
 version = "${version}"
-displayName = "Example Mod"
-authors = "Me!"
+displayName = "Why Not Be One Item"
+authors = "samsthenerd"
 description = '''
-This is an example description! Tell everyone what your mod is about!
+A library mod for context menus
 '''
-#logoFile = ""
+logoFile = "IconWNBOI.png"
 
-[[dependencies.examplemod]]
+[[dependencies.wnboi]]
 modId = "forge"
 mandatory = true
 versionRange = "[43,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.examplemod]]
+[[dependencies.wnboi]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.19.2,)"
 ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.examplemod]]
-modId = "architectury"
-mandatory = true
-versionRange = "[6.2.43,)"
-ordering = "AFTER"
 side = "BOTH"
