@@ -13,7 +13,7 @@
     "sources": "https://github.com/SamsTheNerd/wnboi"
   },
 
-  "license": "CC0-1.0",
+  "license": "lgpl-3",
   "icon": "IconWNBOI.png",
 
   "environment": "*",
