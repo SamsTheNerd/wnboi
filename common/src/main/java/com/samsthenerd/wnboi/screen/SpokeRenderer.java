@@ -76,7 +76,7 @@ public class SpokeRenderer implements Drawable{
 
 
 
-    SpokeRenderer(double orX, double orY, double rad, int numSecs, int secIndex){
+    public SpokeRenderer(double orX, double orY, double rad, int numSecs, int secIndex){
         this.originX = orX;
         this.originY = orY;
         this.outerRadius = rad;
@@ -84,7 +84,7 @@ public class SpokeRenderer implements Drawable{
         this.sectionIndex = secIndex;
 
         initConsts();
-        // WNBOI.LOGGER.info("made a new wheel section renderer with radius " + rad + " and " + numSecs + " sections");
+        // WNBOI.logPrint("made a new wheel section renderer with radius " + rad + " and " + numSecs + " sections");
     }
 
     // make sure this gets called at some point before rendering and after changing any relevant values
@@ -260,7 +260,7 @@ public class SpokeRenderer implements Drawable{
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta){
-        // WNBOI.LOGGER.info("rendering spoke " + sectionIndex);
+        // WNBOI.logPrint("rendering spoke " + sectionIndex);
 
         currentTime = MinecraftClient.getInstance().world.getTime() + delta;
 

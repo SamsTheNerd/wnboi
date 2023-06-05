@@ -41,9 +41,9 @@ public class AbstractContextWheelScreen extends Screen{
     protected double lowerBoundRadius = 0;
     protected double upperBoundRadius = 0;
 
-    double currentTime = 0; // updated on each render call
-    double lastStateChange = 0; // set when selected or deselected
-    int tooltipTickDelay = 30; // how many ticks to wait before showing the tooltip
+    protected double currentTime = 0; // updated on each render call
+    protected double lastStateChange = 0; // set when selected or deselected
+    protected int tooltipTickDelay = 30; // how many ticks to wait before showing the tooltip
 
     // use these to have the screen close when the key is released
     public KeyBinding keyBinding = null;
@@ -70,7 +70,7 @@ public class AbstractContextWheelScreen extends Screen{
 
     @Override
     protected void init(){
-        // WNBOI.LOGGER.info("made a new wheel screen with " + this.numSections + " sections called \"" + title.toString() + "\" | [width="+this.width+", height="+this.height+"]");
+        // WNBOI.logPrint("made a new wheel screen with " + this.numSections + " sections called \"" + title.toString() + "\" | [width="+this.width+", height="+this.height+"]");
         addAllSections();
     }
 
@@ -94,17 +94,17 @@ public class AbstractContextWheelScreen extends Screen{
     }
 
     public boolean closeWheel(boolean requireSelection){
-        WNBOI.LOGGER.info("closing wheel with closeWheel()");
+        WNBOI.logPrint("closing wheel with closeWheel()");
         if(selectedSection != -1){
             triggerSpoke(selectedSection);
             if(this != null){
-                WNBOI.LOGGER.info("actually closing");
+                WNBOI.logPrint("actually closing");
                 this.close();
             }
             return true;
         }
         if(!requireSelection && this != null){
-            WNBOI.LOGGER.info("actually closing");
+            WNBOI.logPrint("actually closing");
             this.close();
             return true;
         }
@@ -129,7 +129,7 @@ public class AbstractContextWheelScreen extends Screen{
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        WNBOI.LOGGER.info("pressed key " + keyCode);
+        WNBOI.logPrint("pressed key " + keyCode);
         if(keyCode >= GLFW.GLFW_KEY_0 && keyCode <= GLFW.GLFW_KEY_9){
             int index = keyCode - GLFW.GLFW_KEY_0 -1; // -1 so that 1 key triggers 0th index
             if(index == -1) index = 9;
@@ -147,7 +147,7 @@ public class AbstractContextWheelScreen extends Screen{
     @Override
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
         if(keyBinding != null && keyBinding.matchesKey(keyCode, scanCode) && requireKeydown){
-            WNBOI.LOGGER.info("closing wheel with keyReleased()");
+            WNBOI.logPrint("closing wheel with keyReleased()");
             this.closeWheel(false);
             return true;
         }
@@ -157,7 +157,7 @@ public class AbstractContextWheelScreen extends Screen{
 
     // do whatever logic you want it to do
     public void triggerSpoke(int index){
-        // WNBOI.LOGGER.info("triggered spoke " + index);
+        // WNBOI.logPrint("triggered spoke " + index);
         selectedSection = -1; // so that we don't recurse ourselves
         MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("triggered spoke " + index));
     }

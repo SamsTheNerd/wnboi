@@ -161,11 +161,11 @@ public class RenderUtils {
     
     public static List<Vec3d> drawStroke(BufferBuilder buffer, List<Vec3d> points, double outerStrokeWidth, double innerStrokeWidth){
         List<Vec3d> stroke = calcStroke(points, outerStrokeWidth, innerStrokeWidth);
-        // WNBOI.LOGGER.info("stroke size: " + stroke.size() + " from points size: " + points.size());
+        // WNBOI.logPrint("stroke size: " + stroke.size() + " from points size: " + points.size());
         // draw stroke
         buffer.begin(VertexFormat.DrawMode.TRIANGLE_STRIP , VertexFormats.POSITION_COLOR);
         for(int i = 0; i < stroke.size(); i++){
-            // WNBOI.LOGGER.info("stroke point: " + stroke.get(i).x + ", " + stroke.get(i).y);
+            // WNBOI.logPrint("stroke point: " + stroke.get(i).x + ", " + stroke.get(i).y);
             buffer.vertex(stroke.get(i).x, stroke.get(i).y, 0).color(128,128,128,255).next();
         }
         return stroke; // pass it up just in case
@@ -179,9 +179,9 @@ public class RenderUtils {
         points1.add(new Vec3d(1,0,0));
         points1.add(new Vec3d(0,0,0));
         List<Vec3d> stroke1 = calcStroke(points1, 0.1, 0.1);
-        WNBOI.LOGGER.info("test 1:");
+        WNBOI.logPrint("test 1:");
         for(int s = 0; s < stroke1.size(); s++){
-            WNBOI.LOGGER.info("stroke point: " + stroke1.get(s).x + ", " + stroke1.get(s).y);
+            WNBOI.logPrint("stroke point: " + stroke1.get(s).x + ", " + stroke1.get(s).y);
         }
     }
 

@@ -17,6 +17,7 @@ public class KeybindUtils {
 			InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, "key.categories.wnboi");
 
     public static final void handleKeyboundItems(KeyBinding keyBinding, MinecraftClient client){
+        if(!keyBinding.isPressed()) return; // don't run if key isn't pressed
         PlayerEntity player = client.player;
         if(player == null){
             return;
@@ -38,11 +39,11 @@ public class KeybindUtils {
             return;
         } else {
             // no screen open - check if we should open one
-            if(mainItem != null && mainItem.getKeyBinding() == keyBinding && keyBinding.isPressed()){
+            if(mainItem != null && mainItem.getKeyBinding() == keyBinding){
                 mainItem.openScreen();
                 return;
             }
-            if(offItem != null && offItem.getKeyBinding() == keyBinding && keyBinding.isPressed()){
+            if(offItem != null && offItem.getKeyBinding() == keyBinding){
                 offItem.openScreen();
                 return;
             }
