@@ -2,6 +2,7 @@ plugins {
 	// id 'fabric-loom' version '1.1-SNAPSHOT'
 	// id 'maven-publish'
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "me.modmuss50.mod-publish-plugin" version "0.3.0"
 }
 
 // sourceCompatibility = JavaVersion.VERSION_17
@@ -54,14 +55,15 @@ remapJar {
     injectAccessWidener = true
     input.set shadowJar.archiveFile
     dependsOn shadowJar
-    archiveClassifier.set null
+    archiveClassifier.set "fabric"
 }
 
 jar {
-    archiveClassifier.set "dev"
+    archiveClassifier.set "fabric-dev"
 }
 
 sourcesJar {
+    archiveClassifier.set "fabric-sources"
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }
@@ -84,5 +86,36 @@ publishing {
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
         // Add repositories to publish to here.
+    }
+}
+
+
+publishMods {
+    file = remapJar.archiveFile
+    additionalFiles.from(sourcesJar.archiveFile)
+    changelog = trimChangelog(file("$rootDir/changelog.md").text)
+    type = STABLE
+    modLoaders.add("fabric")
+    modLoaders.add("quilt")
+
+    version = project.version + "-fabric"
+    displayName = "Why Not Be One Item" + " " + project.version + " [Fabric]"
+ 
+    curseforge {
+        accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
+        projectId = "897562"
+        minecraftVersions.add("1.19.2")
+    }
+
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_API_KEY")
+        projectId = "L8iJY5PM"
+        minecraftVersions.add("1.19.2")
+
+        requires{
+            // fabric api
+            // id = "hfsU4hXq"
+            slug = "fabric-api"
+        }
     }
 }

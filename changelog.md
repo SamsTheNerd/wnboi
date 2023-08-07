@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.4 
+
+## Fixed
+- Server/Client sidedness issues
+
 ## 0.0.3
 
 ### Fixed

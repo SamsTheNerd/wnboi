@@ -1,7 +1,6 @@
 package com.samsthenerd.wnboi.forge;
 
 import com.samsthenerd.wnboi.WNBOI;
-import com.samsthenerd.wnboi.utils.KeybindUtils;
 
 import net.minecraft.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
@@ -20,7 +19,6 @@ public class WNBOIForge {
 
     public WNBOIForge() {
         ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
-        KeybindUtils.registerKeybinds();
         if (FMLEnvironment.dist == Dist.CLIENT){
             WNBOIForgeClient.doClientStuff();
         }
