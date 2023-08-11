@@ -2,7 +2,7 @@
 
 ## 0.0.4 
 
-## Fixed
+### Fixed
 - Server/Client sidedness issues
 
 ## 0.0.3
